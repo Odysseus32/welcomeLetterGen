@@ -106,6 +106,18 @@
             color: #999;
             font-size: 12px;
         }
+        .error-tooltip {
+            color: #ff4444;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+        .error-tooltip.show {
+            display: block;
+        }
+        input.error {
+            border-color: #ff4444;
+        }
     </style>
 </head>
 <body>
@@ -130,7 +142,8 @@
         
         <label>
             Full Name
-            <input type="text" id="fullName" placeholder="Carl Kittler" required>
+            <input type="text" id="fullName" placeholder="Carl Kittler" required oninput="validateNameLength()">
+            <div id="nameLengthError" class="error-tooltip">Name cannot exceed 19 total characters (first + last)</div>
         </label>
         
         <label>
@@ -154,7 +167,41 @@
         // Set minimum date to today
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('startDate').min = today;
-        
+
+        // Validate name length (first + last combined should not exceed 19 characters)
+        function validateNameLength() {
+            const fullName = document.getElementById('fullName').value.trim();
+            const errorTooltip = document.getElementById('nameLengthError');
+            const nameInput = document.getElementById('fullName');
+
+            if (!fullName) {
+                errorTooltip.classList.remove('show');
+                nameInput.classList.remove('error');
+                return;
+            }
+
+            // Split name into parts
+            const nameParts = fullName.split(' ').filter(part => part.trim() !== '');
+
+            if (nameParts.length >= 2) {
+                const firstName = nameParts[0];
+                const lastName = nameParts[nameParts.length - 1];
+                const combinedLength = firstName.length + lastName.length;
+
+                if (combinedLength > 19) {
+                    errorTooltip.classList.add('show');
+                    nameInput.classList.add('error');
+                } else {
+                    errorTooltip.classList.remove('show');
+                    nameInput.classList.remove('error');
+                }
+            } else {
+                // Not enough name parts yet, hide error
+                errorTooltip.classList.remove('show');
+                nameInput.classList.remove('error');
+            }
+        }
+
         // Wordlist for password generation
         const wordlist = [
             'alpha', 'beta', 'gamma', 'delta', 'echo', 'frost', 'storm', 'cloud',
@@ -410,6 +457,13 @@
 
             if (firstName.toLowerCase() === lastName.toLowerCase()) {
                 showStatus('First and last name must be different words', 'error');
+                return;
+            }
+
+            // Check combined name length doesn't exceed 19 characters
+            const combinedLength = firstName.length + lastName.length;
+            if (combinedLength > 19) {
+                showStatus('Combined name cannot exceed 19 characters (first + last)', 'error');
                 return;
             }
 
