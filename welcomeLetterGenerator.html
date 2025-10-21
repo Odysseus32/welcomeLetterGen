@@ -142,8 +142,9 @@
         
         <label>
             Full Name
-            <input type="text" id="fullName" placeholder="Carl Kittler" required oninput="validateNameLength()">
+            <input type="text" id="fullName" placeholder="Carl Kittler" required oninput="validateNameLength()" onblur="validateFullNameOnBlur()">
             <div id="nameLengthError" class="error-tooltip">Name cannot exceed 19 total characters (first + last)</div>
+            <div id="singleWordError" class="error-tooltip">Full name required (first + last)</div>
         </label>
         
         <label>
@@ -172,6 +173,7 @@
         function validateNameLength() {
             const fullName = document.getElementById('fullName').value.trim();
             const errorTooltip = document.getElementById('nameLengthError');
+            const singleWordError = document.getElementById('singleWordError');
             const nameInput = document.getElementById('fullName');
 
             if (!fullName) {
@@ -184,6 +186,9 @@
             const nameParts = fullName.split(' ').filter(part => part.trim() !== '');
 
             if (nameParts.length >= 2) {
+                // Hide single word error if they now have 2+ words
+                singleWordError.classList.remove('show');
+
                 const firstName = nameParts[0];
                 const lastName = nameParts[nameParts.length - 1];
                 const combinedLength = firstName.length + lastName.length;
@@ -196,9 +201,36 @@
                     nameInput.classList.remove('error');
                 }
             } else {
-                // Not enough name parts yet, hide error
+                // Not enough name parts yet, hide length error
                 errorTooltip.classList.remove('show');
                 nameInput.classList.remove('error');
+            }
+        }
+
+        // Validate that full name has both first and last name on blur
+        function validateFullNameOnBlur() {
+            const fullName = document.getElementById('fullName').value.trim();
+            const singleWordError = document.getElementById('singleWordError');
+            const nameInput = document.getElementById('fullName');
+
+            if (!fullName) {
+                singleWordError.classList.remove('show');
+                return;
+            }
+
+            // Split name into parts
+            const nameParts = fullName.split(' ').filter(part => part.trim() !== '');
+
+            if (nameParts.length < 2) {
+                singleWordError.classList.add('show');
+                nameInput.classList.add('error');
+            } else {
+                singleWordError.classList.remove('show');
+                // Only remove error class if no other errors
+                const nameLengthError = document.getElementById('nameLengthError');
+                if (!nameLengthError.classList.contains('show')) {
+                    nameInput.classList.remove('error');
+                }
             }
         }
 
