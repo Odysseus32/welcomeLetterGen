@@ -145,6 +145,7 @@
             <input type="text" id="fullName" placeholder="Carl Kittler" required oninput="validateNameLength()" onblur="validateFullNameOnBlur()" onfocus="clearSingleWordError()">
             <div id="nameLengthError" class="error-tooltip">Name cannot exceed 19 total characters (first + last)</div>
             <div id="singleWordError" class="error-tooltip">Full name required: first + last</div>
+            <div id="middleNameError" class="error-tooltip">Middle names not allowed - only first and last name</div>
         </label>
         
         <label>
@@ -172,11 +173,13 @@
         // Validate name length (first + last combined should not exceed 19 characters)
         function validateNameLength() {
             const fullName = document.getElementById('fullName').value.trim();
-            const errorTooltip = document.getElementById('nameLengthError');
+            const lengthErrorTooltip = document.getElementById('nameLengthError');
+            const middleNameErrorTooltip = document.getElementById('middleNameError');
             const nameInput = document.getElementById('fullName');
 
             if (!fullName) {
-                errorTooltip.classList.remove('show');
+                lengthErrorTooltip.classList.remove('show');
+                middleNameErrorTooltip.classList.remove('show');
                 nameInput.classList.remove('error');
                 return;
             }
@@ -184,21 +187,31 @@
             // Split name into parts
             const nameParts = fullName.split(' ').filter(part => part.trim() !== '');
 
+            // Check for more than 2 words (middle names)
+            if (nameParts.length > 2) {
+                middleNameErrorTooltip.classList.add('show');
+                nameInput.classList.add('error');
+                lengthErrorTooltip.classList.remove('show');
+                return;
+            } else {
+                middleNameErrorTooltip.classList.remove('show');
+            }
+
             if (nameParts.length >= 2) {
                 const firstName = nameParts[0];
                 const lastName = nameParts[nameParts.length - 1];
                 const combinedLength = firstName.length + lastName.length;
 
                 if (combinedLength > 19) {
-                    errorTooltip.classList.add('show');
+                    lengthErrorTooltip.classList.add('show');
                     nameInput.classList.add('error');
                 } else {
-                    errorTooltip.classList.remove('show');
+                    lengthErrorTooltip.classList.remove('show');
                     nameInput.classList.remove('error');
                 }
             } else {
                 // Not enough name parts yet, hide error
-                errorTooltip.classList.remove('show');
+                lengthErrorTooltip.classList.remove('show');
                 nameInput.classList.remove('error');
             }
         }
@@ -236,7 +249,9 @@
         // Clear single word error when user focuses on the name field
         function clearSingleWordError() {
             const singleWordError = document.getElementById('singleWordError');
+            const middleNameError = document.getElementById('middleNameError');
             singleWordError.classList.remove('show');
+            middleNameError.classList.remove('show');
         }
 
         // Wordlist for password generation
@@ -486,6 +501,12 @@
             const nameParts = fullName.split(' ').filter(part => part.trim() !== '');
             if (nameParts.length < 2) {
                 showStatus('Please enter both first and last name (e.g., "Carl Kittler")', 'error');
+                return;
+            }
+
+            // Validate that user did not enter more than two words (no middle names)
+            if (nameParts.length > 2) {
+                showStatus('Middle names not allowed - only first and last name', 'error');
                 return;
             }
 
