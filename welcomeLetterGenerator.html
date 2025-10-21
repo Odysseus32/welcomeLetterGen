@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📃</text></svg>">
+    <title>Welcome Letter Generator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #e0e0e0;
+        }
+        .container {
+            background: #2d2d2d;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        h2 {
+            margin-top: 0;
+            color: #ffffff;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 600;
+            color: #e0e0e0;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #404040;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+            background: #1e1e1e;
+            color: #e0e0e0;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #0078d4;
+        }
+        button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 12px;
+            background: #0078d4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        button:hover {
+            background: #005a9e;
+        }
+        button:disabled {
+            background: #404040;
+            cursor: not-allowed;
+        }
+        .copy-btn {
+            margin-top: 10px;
+            padding: 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+        }
+        .copy-btn:hover {
+            background: #218838;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        .status.show {
+            display: block;
+        }
+        .status.success {
+            background: #1e4620;
+            color: #7ee87e;
+            border: 1px solid #28a745;
+        }
+        .status.error {
+            background: #4a1e1e;
+            color: #f78989;
+            border: 1px solid #dc3545;
+        }
+        .status.info {
+            background: #1e3a4a;
+            color: #7ec8e8;
+            border: 1px solid #17a2b8;
+        }
+        small {
+            color: #999;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🎫 Welcome Letter Generator</h2>
+        
+        <label>
+            Company
+            <select id="company">
+                <option value="T1ES">T1ES - Tier 1 Energy Solutions</option>
+                <option value="T1CS">T1CS - Tier 1 Competions Solutions</option>
+                <option value="CCSU">CCSU - Canatex Completion Solutions</option>
+                <option value="DefOpt">DefOpt - Definitive Optimization</option>
+            </select>
+        </label>
+        
+        <label>
+            Computer Number
+            <input type="number" id="compNum" placeholder="555 (leave blank for ___)">
+            <small>Leave blank if not assigned yet</small>
+        </label>
+        
+        <label>
+            Full Name
+            <input type="text" id="fullName" placeholder="Carl Kittler" required>
+        </label>
+        
+        <label>
+            Password (optional)
+            <input type="text" id="customPassword" placeholder="Leave blank to auto-generate">
+            <small>If blank, a random password will be generated</small>
+        </label>
+        
+        <label>
+            Starting Date
+            <input type="date" id="startDate">
+            <small>Leave blank to use today's date</small>
+        </label>
+        
+        <button onclick="generateLetters()">Generate Welcome Letters</button>
+        
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        // Set minimum date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('startDate').min = today;
+        
+        // Wordlist for password generation
+        const wordlist = [
+            'alpha', 'beta', 'gamma', 'delta', 'echo', 'frost', 'storm', 'cloud',
+            'blade', 'spark', 'forge', 'pulse', 'drift', 'shade', 'flame', 'steel',
+            'stone', 'ocean', 'river', 'mount', 'valley', 'forest', 'meadow', 'desert',
+            'tiger', 'viper', 'nexus', 'cipher', 'phoenix', 'dragon', 'knight', 'titan',
+            'cobra', 'eagle', 'falcon', 'raven', 'wolf', 'bear', 'lion', 'hawk',
+            'shadow', 'crystal', 'thunder', 'plasma', 'quantum', 'vector', 'matrix',
+            'prism', 'ember', 'aurora', 'comet', 'galaxy', 'stellar', 'lunar', 'solar'
+        ];
+
+        // Logo URL mapping
+        const logoUrls = {
+            'T1ES': 'https://cdn.prod.website-files.com/5e59748a5695e50588049056/5e5d4aaed5c4188df8a1aa0a_Tier1-Logo-Canada-Horizontal-Tagline-RGB.png',
+            'T1CS': 'https://cdn.prod.website-files.com/5e6ff5d23e47f93a078b448a/5e7a3371dd44a73118b8187f_Tier1-Logo-US-Horizontal-Tagline-RGB.png',
+            'CCSU': 'https://cdn.prod.website-files.com/59a43992f0b9de0001da166e/59a44963f0b9de0001da225a_Canatex-CompletionsSolutions-LogoColour.png',
+            'DefOpt': 'https://defopt.com/images/logo_definitive_optimization.png'
+        };
+
+        // Email domain mapping
+        const emailDomains = {
+            'T1ES': '@tier1energy.ca',
+            'T1CS': '@tier1cs.com',
+            'CCSU': '@canatexcompletions.com',
+            'DefOpt': '@defopt.com'
+        };
+
+        // HTML Template
+        const htmlTemplate = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+    <title>Welcome Letter - FIRSTNAME LASTNAME</title>
+    <style>
+        body {
+            font-family: Calibri, Arial, sans-serif;
+            font-size: 11pt;
+            margin: 40px;
+            line-height: 1.4;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .header img {
+            height: 60px;
+            opacity: 0.3;
+        }
+        .header img:first-child {
+            margin-right: auto;
+        }
+        .header img:last-child {
+            margin-left: auto;
+        }
+        .greeting {
+            text-align: center;
+            font-size: 12pt;
+            font-weight: bold;
+            margin: 30px 0 20px 0;
+        }
+        .intro {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        td {
+            border: 1px solid #000;
+            padding: 10px;
+        }
+        td:first-child {
+            width: 45%;
+            font-weight: normal;
+        }
+        td:nth-child(2) {
+            width: 55%;
+        }
+        .note {
+            background-color: #FFFF00;
+            padding: 10px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        a {
+            color: #0000FF;
+            text-decoration: underline;
+        }
+        @media print {
+            body {
+                margin: 0.5in;
+            }
+            .note {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="https://johncameron.com/wp-content/uploads/2022/05/Yardstick_Technologies_-_Logo-removebg-preview.png" alt="Yardstick Technologies">
+        <img src="TIER1LOGOURL" alt="Company Logo">
+    </div>
+
+    <div class="greeting">Dear FIRSTNAME,</div>
+
+    <div class="intro">
+        Your email is ready to go. Please use the settings below to get started.<br>
+        <br>
+        Please call the number below if you require any help.
+    </div>
+
+    <table>
+        <tr>
+            <td>SPECIAL INSTRUCTIONS</td>
+            <td><a href="https://www.youtube.com/watch?v=JCFAoMPFq-Q">https://www.youtube.com/watch?v=JCFAoMPFq-Q</a></td>
+        </tr>
+        <tr>
+            <td>YOUR LOGIN</td>
+            <td>USERLOGIN</td>
+        </tr>
+        <tr>
+            <td>YOUR PASSWORD*</td>
+            <td>PASSWORDFIELD</td>
+        </tr>
+        <tr>
+            <td>YOUR COMPUTER NAME</td>
+            <td>COMPUTERNAME</td>
+        </tr>
+        <tr>
+            <td>YOUR EMAIL ADDRESS</td>
+            <td>EMAILADDRESS</td>
+        </tr>
+        <tr>
+            <td>YOUR EMAIL PASSWORD*</td>
+            <td>PASSWORDFIELD</td>
+        </tr>
+        <tr>
+            <td>HOW TO ACCESS YOUR EMAIL</td>
+            <td><a href="https://outlook.office.com/mail/">https://outlook.office.com/mail/</a></td>
+        </tr>
+        <tr>
+            <td>YOUR WIRELESS NETWORK NAME</td>
+            <td>___</td>
+        </tr>
+        <tr>
+            <td>YOUR WIRELESS KEY</td>
+            <td>___</td>
+        </tr>
+        <tr>
+            <td>YOUR TECHNICAL SUPPORT PHONE NUMBER</td>
+            <td>Toll free: 1 866 942 5067</td>
+        </tr>
+        <tr>
+            <td>YOUR TECHNICAL SUPPORT EMAIL</td>
+            <td>support@yardsticktechnologies.com</td>
+        </tr>
+        <tr>
+            <td>YOUR TECHNICAL SUPPORT WEBSITE</td>
+            <td><a href="https://www.yardsticktechnologies.com">www.yardsticktechnologies.com</a></td>
+        </tr>
+    </table>
+
+    <div class="note">
+        * We have created a temporary password that you can use to sign in for the first time, but we recommend that you change this password as soon as possible so that you are the only one who knows your password.
+    </div>
+</body>
+</html>`;
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type} show`;
+        }
+
+        function calculateExpiryDays(startDate) {
+            const start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const diffTime = start - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            // Expiry = (days until start) + 7, with minimum of 7 days
+            const expiryDays = diffDays + 7;
+            return Math.max(7, expiryDays);
+        }
+
+        function generatePassword() {
+            const r = () => wordlist[Math.floor(Math.random() * wordlist.length)];
+            return `${r().toLowerCase()}-${r().toUpperCase()}-${r().toLowerCase()}-${Math.floor(Math.random() * 90) + 10}`;
+        }
+
+        async function createPwPushLink(password, expiryDays) {
+            const response = await fetch('https://pwpush.com/p.json', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    password: {
+                        payload: password,
+                        expire_after_days: expiryDays,
+                        expire_after_views: 20
+                    }
+                })
+            });
+            const data = await response.json();
+            return `https://pwpush.com/p/${data.url_token}`;
+        }
+
+        function generateHTML(firstName, lastName, computerName, email, passwordDisplay, logoUrl) {
+            return htmlTemplate
+                .replace(/FIRSTNAME/g, firstName)
+                .replace(/LASTNAME/g, lastName)
+                .replace(/USERLOGIN/g, `${firstName}.${lastName}`)
+                .replace(/COMPUTERNAME/g, computerName)
+                .replace(/EMAILADDRESS/g, email)
+                .replace(/PASSWORDFIELD/g, passwordDisplay)
+                .replace(/TIER1LOGOURL/g, logoUrl);
+        }
+
+        async function generateLetters() {
+            const company = document.getElementById('company').value;
+            const compNum = document.getElementById('compNum').value;
+            const fullName = document.getElementById('fullName').value.trim();
+            const customPassword = document.getElementById('customPassword').value.trim();
+            let startDate = document.getElementById('startDate').value;
+            const dateWasEmpty = !startDate;
+
+            // Only require full name
+            if (!fullName) {
+                showStatus('Please enter a full name', 'error');
+                return;
+            }
+
+            // Use today's date if not provided
+            if (dateWasEmpty) {
+                startDate = new Date().toISOString().split('T')[0];
+            }
+
+            // Only validate date if user actually provided one
+            if (!dateWasEmpty) {
+                const selectedDate = new Date(startDate);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (selectedDate < today) {
+                    showStatus('Starting date cannot be in the past', 'error');
+                    return;
+                }
+            }
+
+            try {
+                showStatus('Generating password and pwpush link...', 'info');
+
+                // Get the logo URL for selected company
+                const logoUrl = logoUrls[company];
+                const emailDomain = emailDomains[company];
+
+                // Parse name
+                const nameParts = fullName.split(' ');
+                const firstName = nameParts[0];
+                const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : nameParts[0];
+
+                // Format computer name - use ___ if not provided
+                const computerName = compNum ? `TIER1LP${compNum.toString().padStart(3, '0')}` : '___';
+
+                // Generate email with company-specific domain
+                const email = `${firstName}.${lastName}${emailDomain}`;
+
+                // Use custom password if provided, otherwise generate one
+                const password = customPassword || generatePassword();
+
+                // Calculate expiry and create pwpush link
+                const expiryDays = calculateExpiryDays(startDate);
+                const pwpushLink = await createPwPushLink(password, expiryDays);
+
+                showStatus(`Opening documents (PWPush expires in ${expiryDays} days)...`, 'info');
+
+                // Generate both HTML versions
+                const htmlPwPush = generateHTML(firstName, lastName, computerName, email, pwpushLink, logoUrl);
+                const htmlPlaintext = generateHTML(firstName, lastName, computerName, email, password, logoUrl);
+
+                // Open both in new windows
+                const win1 = window.open('', '_blank');
+                if (!win1) {
+                    showStatus('Error: Please allow popups for this site and try again.', 'error');
+                    return;
+                }
+                win1.document.write(htmlPwPush);
+                win1.document.close();
+                win1.document.title = `${firstName}${lastName}_WelcomeLetter`;
+
+                // Delay to avoid popup blocker
+                setTimeout(() => {
+                    const win2 = window.open('', '_blank');
+                    if (!win2) {
+                        showStatus('⚠️ First letter opened. Please allow popups to open the manager copy.', 'error');
+                        return;
+                    }
+                    win2.document.write(htmlPlaintext);
+                    win2.document.close();
+                    win2.document.title = `${firstName}${lastName}_WelcomeLetter_ManagerCopy`;
+                    
+                    showStatus('✓ Both welcome letters opened! Use Ctrl+P to print to PDF.', 'success');
+                    
+                    // Add copy password button
+                    const copyBtn = document.createElement('button');
+                    copyBtn.className = 'copy-btn';
+                    copyBtn.textContent = '📋 Copy Password & Link';
+                    copyBtn.onclick = async () => {
+                        const textToCopy = `${password} || ${pwpushLink}`;
+                        try {
+                            await navigator.clipboard.writeText(textToCopy);
+                            copyBtn.textContent = '✓ Copied to clipboard!';
+                            setTimeout(() => {
+                                copyBtn.textContent = '📋 Copy Password & Link';
+                            }, 2000);
+                        } catch (err) {
+                            copyBtn.textContent = '❌ Failed to copy';
+                            setTimeout(() => {
+                                copyBtn.textContent = '📋 Copy Password & Link';
+                            }, 2000);
+                        }
+                    };
+                    document.getElementById('status').appendChild(copyBtn);
+                }, 1000);
+
+            } catch (error) {
+                showStatus('Error: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
