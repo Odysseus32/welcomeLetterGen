@@ -142,8 +142,9 @@
         
         <label>
             Full Name
-            <input type="text" id="fullName" placeholder="Carl Kittler" required oninput="validateNameLength()">
+            <input type="text" id="fullName" placeholder="Carl Kittler" required oninput="validateNameLength()" onblur="validateFullNameOnBlur()" onfocus="clearSingleWordError()">
             <div id="nameLengthError" class="error-tooltip">Name cannot exceed 19 total characters (first + last)</div>
+            <div id="singleWordError" class="error-tooltip">Full name required: first + last</div>
         </label>
         
         <label>
@@ -200,6 +201,42 @@
                 errorTooltip.classList.remove('show');
                 nameInput.classList.remove('error');
             }
+        }
+
+        // Validate full name on blur (check for single word entry)
+        function validateFullNameOnBlur() {
+            const fullName = document.getElementById('fullName').value.trim();
+            const singleWordError = document.getElementById('singleWordError');
+            const nameInput = document.getElementById('fullName');
+
+            if (!fullName) {
+                // Empty field - hide the tooltip
+                singleWordError.classList.remove('show');
+                return;
+            }
+
+            // Split name into parts
+            const nameParts = fullName.split(' ').filter(part => part.trim() !== '');
+
+            if (nameParts.length === 1) {
+                // Only one word entered - show tooltip
+                singleWordError.classList.add('show');
+                nameInput.classList.add('error');
+            } else {
+                // Two or more words - hide tooltip
+                singleWordError.classList.remove('show');
+                // Only remove error class if there's no length error showing
+                const lengthError = document.getElementById('nameLengthError');
+                if (!lengthError.classList.contains('show')) {
+                    nameInput.classList.remove('error');
+                }
+            }
+        }
+
+        // Clear single word error when user focuses on the name field
+        function clearSingleWordError() {
+            const singleWordError = document.getElementById('singleWordError');
+            singleWordError.classList.remove('show');
         }
 
         // Wordlist for password generation
