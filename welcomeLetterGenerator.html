@@ -398,6 +398,21 @@
                 return;
             }
 
+            // Validate that user entered at least two distinct words
+            const nameParts = fullName.split(' ').filter(part => part.trim() !== '');
+            if (nameParts.length < 2) {
+                showStatus('Please enter both first and last name (e.g., "Carl Kittler")', 'error');
+                return;
+            }
+
+            const firstName = nameParts[0];
+            const lastName = nameParts[nameParts.length - 1];
+
+            if (firstName.toLowerCase() === lastName.toLowerCase()) {
+                showStatus('First and last name must be different words', 'error');
+                return;
+            }
+
             // Use today's date if not provided
             if (dateWasEmpty) {
                 startDate = new Date().toISOString().split('T')[0];
@@ -421,11 +436,6 @@
                 // Get the logo URL for selected company
                 const logoUrl = logoUrls[company];
                 const emailDomain = emailDomains[company];
-
-                // Parse name
-                const nameParts = fullName.split(' ');
-                const firstName = nameParts[0];
-                const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : nameParts[0];
 
                 // Format computer name - use ___ if not provided
                 const computerName = compNum ? `TIER1LP${compNum.toString().padStart(3, '0')}` : '___';
